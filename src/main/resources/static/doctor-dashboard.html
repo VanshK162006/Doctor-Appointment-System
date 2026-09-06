@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Doctor Dashboard — Doctor Appointment System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#142621; --paper:#EEF0EA; --card:#FFFFFF;
+    --teal:#145C52; --teal-deep:#0C2E29; --teal-mid:#1C6E61;
+    --coral:#D9503B; --coral-soft:rgba(217,80,59,0.10);
+    --sage:#E4EBE4; --sage-strong:#C9DBCC;
+    --line:rgba(20,38,33,0.12); --line-strong:rgba(20,38,33,0.24);
+    --shadow:0 20px 40px -22px rgba(12,46,41,0.30), 0 2px 8px rgba(12,46,41,0.06);
+    --radius:10px; --radius-sm:7px;
+  }
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; padding:0; }
+  body{ background:var(--paper); color:var(--ink); font-family:'IBM Plex Sans', sans-serif; min-height:100vh; }
+  a{ color:inherit; } svg{ display:block; } button{ font-family:inherit; }
+
+  .topbar{
+    position:sticky; top:0; z-index:20; background: var(--teal-deep); color: var(--paper);
+    display:flex; align-items:center; gap:24px; padding: 12px 28px;
+  }
+  .logo{ display:inline-flex; align-items:center; gap:9px; text-decoration:none; color:inherit; flex-shrink:0; }
+  .logo-badge{ width:26px; height:26px; }
+  .logo-word{ font-family:'IBM Plex Mono', monospace; font-size:11.5px; font-weight:500; letter-spacing:0.02em; }
+  .role-tag{
+    font-family:'IBM Plex Mono', monospace; font-size:10.5px; letter-spacing:0.08em; text-transform:uppercase;
+    background: rgba(217,80,59,0.18); color:#F3B6A9; padding:4px 9px; border-radius:20px; margin-left:6px;
+  }
+  .topbar-right{ margin-left:auto; display:flex; align-items:center; gap:14px; }
+  .user-email{ font-family:'IBM Plex Mono', monospace; font-size:12px; color: rgba(238,240,234,0.55); }
+  .logout-btn{
+    background:none; border:1px solid rgba(238,240,234,0.3); color: var(--paper);
+    font-size:13px; padding:7px 12px; border-radius:6px; cursor:pointer;
+    transition: border-color .15s ease, background .15s ease;
+  }
+  .logout-btn:hover{ background: rgba(238,240,234,0.1); border-color: rgba(238,240,234,0.5); }
+  @media (max-width:720px){ .topbar{ flex-wrap:wrap; gap:10px; padding:12px 16px; } .user-email{ display:none; } }
+
+  .shell{ max-width: 900px; margin: 0 auto; padding: 36px 28px 80px; }
+  @media (max-width:720px){ .shell{ padding: 24px 16px 60px; } }
+
+  .view-head{ margin-bottom: 26px; }
+  .eyebrow{ font-family:'IBM Plex Mono', monospace; font-size:11px; letter-spacing:0.14em; text-transform:uppercase; color:var(--teal); }
+  h1{ font-family:'Fraunces', serif; font-weight:500; font-size:28px; margin:8px 0 4px; letter-spacing:-0.01em; }
+  .sub{ color: rgba(20,38,33,0.6); font-size:14px; margin:0; }
+
+  .toast{
+    position:fixed; top:20px; right:20px; z-index:100; max-width: 340px; padding:13px 15px;
+    border-radius: var(--radius-sm); font-size:13.5px; line-height:1.5; box-shadow: var(--shadow);
+    transform: translateX(120%); transition: transform .25s ease;
+  }
+  .toast.show{ transform: translateX(0); }
+  .toast.success{ background: var(--teal-deep); color: var(--paper); }
+  .toast.error{ background:#fff; color: var(--coral); border:1px solid rgba(217,80,59,0.35); }
+
+  .appt-card{
+    background: var(--card); border:1px solid var(--line); border-radius: var(--radius);
+    padding: 16px 18px; margin-bottom:12px; display:flex; align-items:center; gap:16px; flex-wrap:wrap;
+  }
+  .appt-main{ flex:1; min-width:220px; }
+  .appt-patient{ font-weight:600; font-size:14.5px; margin-bottom:3px; }
+  .appt-meta{ font-size:12.5px; color: rgba(20,38,33,0.55); }
+  .appt-reason{ font-size:12.5px; color: rgba(20,38,33,0.65); margin-top:5px; }
+
+  .pill{
+    font-family:'IBM Plex Mono', monospace; font-size:10.5px; letter-spacing:0.05em; text-transform:uppercase;
+    padding: 4px 9px; border-radius: 20px; white-space:nowrap;
+  }
+  .pill.scheduled{ background: rgba(20,92,82,0.10); color: var(--teal); }
+  .pill.completed{ background: var(--sage-strong); color: var(--teal-deep); }
+  .pill.cancelled{ background: var(--coral-soft); color: var(--coral); }
+
+  .empty-state{
+    text-align:center; padding: 50px 20px; color: rgba(20,38,33,0.45); font-size:14px;
+    border: 1px dashed var(--line-strong); border-radius: var(--radius);
+  }
+  .loading-state{ text-align:center; padding:50px 20px; color: rgba(20,38,33,0.5); font-size:14px; }
+
+  .btn{
+    font-size:13.5px; font-weight:600; padding:9px 14px; border-radius: var(--radius-sm);
+    border:1px solid transparent; cursor:pointer; transition: background .15s ease, border-color .15s ease, transform .1s ease;
+  }
+  .btn:active{ transform: translateY(1px); }
+  .btn-primary{ background: var(--teal); color: var(--paper); }
+  .btn-primary:hover{ background: var(--teal-deep); }
+  .btn-ghost{ background:none; border-color: var(--line-strong); color: var(--ink); }
+  .btn-ghost:hover{ background: var(--sage); }
+  .btn-danger-outline{ background:none; border-color: rgba(217,80,59,0.4); color: var(--coral); }
+  .btn-danger-outline:hover{ background: var(--coral-soft); }
+  .btn[disabled]{ opacity:0.45; cursor:not-allowed; }
+  .btn.full{ width:100%; }
+  .btn.small{ padding:6px 10px; font-size:12.5px; }
+
+  .modal-overlay{
+    display:none; position:fixed; inset:0; background: rgba(12,25,22,0.45);
+    align-items:center; justify-content:center; z-index:50; padding:20px;
+  }
+  .modal-overlay.show{ display:flex; }
+  .modal{
+    background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow);
+    max-width: 480px; width:100%; max-height:86vh; overflow-y:auto; position:relative;
+    padding: 30px 28px 26px; animation: modalIn .25s ease both;
+  }
+  @keyframes modalIn{ from{opacity:0; transform:translateY(8px) scale(.98);} to{opacity:1; transform:translateY(0) scale(1);} }
+  @media (prefers-reduced-motion: reduce){ .modal{ animation:none; } }
+  .modal-close{
+    position:absolute; top:14px; right:14px; background:none; border:none; font-size:20px;
+    color: rgba(20,38,33,0.4); cursor:pointer; line-height:1; padding:4px;
+  }
+  .modal-close:hover{ color: var(--ink); }
+  .m-eyebrow{ font-family:'IBM Plex Mono', monospace; font-size:10.5px; letter-spacing:0.12em; text-transform:uppercase; color:var(--teal); }
+  .m-title{ font-family:'Fraunces', serif; font-weight:500; font-size:21px; margin:7px 0 14px; }
+  .m-row{ display:flex; justify-content:space-between; font-size:13.5px; padding:8px 0; border-bottom:1px solid var(--line); }
+  .m-row .k{ color: rgba(20,38,33,0.55); }
+  .m-row .v{ font-weight:500; text-align:right; }
+  .m-actions{ display:flex; gap:10px; margin-top:20px; }
+  .m-actions .btn{ flex:1; }
+
+  .med-row{ display:grid; grid-template-columns: 1fr 1fr auto; gap:8px; margin-bottom:10px; align-items:flex-start; }
+  .med-row input{
+    width:100%; padding:10px 11px; font-size:13.5px; font-family:'IBM Plex Sans', sans-serif;
+    border:1px solid var(--line-strong); border-radius: var(--radius-sm); outline:none;
+    transition: border-color .15s ease, box-shadow .15s ease;
+  }
+  .med-row input:focus-visible{ border-color: var(--teal); box-shadow: 0 0 0 3px rgba(20,92,82,0.14); }
+  .med-remove{
+    background:none; border:1px solid var(--line-strong); border-radius: var(--radius-sm);
+    color: var(--coral); width:38px; height:38px; cursor:pointer; font-size:16px;
+  }
+  .med-remove:hover{ background: var(--coral-soft); }
+  .med-labels{ display:grid; grid-template-columns: 1fr 1fr auto; gap:8px; font-size:11px; color: rgba(20,38,33,0.45); margin-bottom:6px; }
+  .med-labels span:last-child{ width:38px; }
+  .add-med-btn{
+    background:none; border:1px dashed var(--line-strong); border-radius: var(--radius-sm);
+    color: var(--teal); font-size:13px; font-weight:600; padding:9px; width:100%; cursor:pointer; margin-top:2px;
+  }
+  .add-med-btn:hover{ background: var(--sage); }
+  .field-error{ font-size:12px; color: var(--coral); min-height:15px; margin-top:5px; }
+</style>
+</head>
+<body>
+
+  <header class="topbar">
+    <a href="index.html" class="logo">
+      <svg class="logo-badge" viewBox="0 0 34 34" fill="none">
+        <circle cx="17" cy="17" r="15" stroke="#EEF0EA" stroke-width="1.3"/>
+        <path d="M17 10v14M10 17h14" stroke="#EEF0EA" stroke-width="1.6" stroke-linecap="round"/>
+        <circle cx="17" cy="3" r="2.1" fill="#D9503B"/>
+      </svg>
+      <span class="logo-word">DOCTOR&nbsp;APPOINTMENT&nbsp;SYS.</span>
+    </a>
+    <span class="role-tag">Doctor</span>
+    <div class="topbar-right">
+      <span class="user-email" id="user-email"></span>
+      <button class="logout-btn" id="logout-btn">Log out</button>
+    </div>
+  </header>
+
+  <main class="shell">
+    <div id="toast" class="toast"></div>
+    <div class="view-head">
+      <div class="eyebrow">Appointments</div>
+      <h1>Today's patients</h1>
+      <p class="sub">Open an appointment to write a prescription once the visit is done.</p>
+    </div>
+    <div id="appointments-list"><div class="loading-state">Loading appointments…</div></div>
+  </main>
+
+  <div class="modal-overlay" id="modal-overlay">
+    <div class="modal">
+      <button class="modal-close" id="modal-close">×</button>
+      <div id="modal-body"></div>
+    </div>
+  </div>
+
+<script>
+  const API_BASE_URL = 'http://localhost:8080/api/doctor_appointment_system';
+
+  const token = sessionStorage.getItem('das_token');
+  const email = sessionStorage.getItem('das_email');
+  if(!token){ window.location.href = 'index.html'; }
+  document.getElementById('user-email').textContent = email || '';
+
+  document.getElementById('logout-btn').addEventListener('click', () => {
+    sessionStorage.removeItem('das_token');
+    sessionStorage.removeItem('das_email');
+    window.location.href = 'index.html';
+  });
+
+  async function apiFetch(path, options = {}){
+    const res = await fetch(`${API_BASE_URL}${path}`, {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+        ...(options.headers || {})
+      }
+    });
+
+    if(res.status === 401){
+      sessionStorage.removeItem('das_token');
+      sessionStorage.removeItem('das_email');
+      window.location.href = 'index.html';
+      throw new Error('Session expired.');
+    }
+
+    const text = await res.text();
+    let data = null;
+    try { data = text ? JSON.parse(text) : null; } catch(_) { data = text; }
+
+    if(!res.ok){
+      let message = (data && data.message) || 'Request failed.';
+      if(res.status === 403 || res.status === 500){
+        message += ' — this looks like the role-check bug described in README Section 7 (hasRole vs hasAuthority). Fix that in SecurityConfiguration/controllers, then retry.';
+      }
+      throw new Error(message);
+    }
+    return data;
+  }
+
+  let toastTimer;
+  function showToast(message, kind = 'success'){
+    const toast = document.getElementById('toast');
+    toast.textContent = message;
+    toast.className = 'toast show ' + kind;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toast.classList.remove('show'), 4000);
+  }
+
+  const overlay = document.getElementById('modal-overlay');
+  const modalBody = document.getElementById('modal-body');
+  function openModal(html){ modalBody.innerHTML = html; overlay.classList.add('show'); }
+  function closeModal(){ overlay.classList.remove('show'); modalBody.innerHTML = ''; }
+  document.getElementById('modal-close').addEventListener('click', closeModal);
+  overlay.addEventListener('click', (e) => { if(e.target === overlay) closeModal(); });
+
+  let apptsCache = [];
+
+  async function loadAppointments(){
+    const list = document.getElementById('appointments-list');
+    list.innerHTML = `<div class="loading-state">Loading appointments…</div>`;
+    try {
+      const appts = await apiFetch('/dashboard/doctor/get_all_appointments');
+      apptsCache = appts || [];
+      if(!apptsCache.length){
+        list.innerHTML = `<div class="empty-state">No appointments booked with you yet.</div>`;
+        return;
+      }
+      list.innerHTML = apptsCache.map((a, idx) => {
+        const status = (a.status || 'scheduled').toLowerCase();
+        const hasId = a.id !== undefined && a.id !== null;
+        const patient = a.patientResponseDto || a.patient || {};
+        const canPrescribe = status === 'scheduled';
+        return `
+          <div class="appt-card">
+            <div class="appt-main">
+              <div class="appt-patient">${patient.name || 'Patient'}</div>
+              <div class="appt-meta">${a.availableFrom} – ${a.availableTo}${patient.phone ? ' · ' + patient.phone : ''}</div>
+              <div class="appt-reason">${a.reason || ''}</div>
+            </div>
+            <span class="pill ${status}">${status}</span>
+            ${canPrescribe ? `<button class="btn btn-primary small" data-action="prescribe" data-idx="${idx}" ${hasId ? '' : 'disabled title="Backend needs an id field on this response — see chat notes"'}>Add prescription</button>` : ''}
+          </div>
+        `;
+      }).join('');
+    } catch(err){
+      list.innerHTML = `<div class="empty-state">${err.message}</div>`;
+    }
+  }
+
+  document.getElementById('appointments-list').addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-action="prescribe"]');
+    if(!btn) return;
+    const appt = apptsCache[Number(btn.dataset.idx)];
+    openPrescriptionForm(appt);
+  });
+
+  function medRowHtml(i){
+    return `
+      <div class="med-row" data-row="${i}">
+        <input type="text" class="med-name" placeholder="e.g. Paracetamol 500mg">
+        <input type="text" class="med-time" placeholder="e.g. Twice daily, after meals">
+        <button type="button" class="med-remove" data-remove="${i}">×</button>
+      </div>`;
+  }
+
+  function openPrescriptionForm(appt){
+    const patient = appt.patientResponseDto || appt.patient || {};
+    let rowCount = 1;
+    openModal(`
+      <div class="m-eyebrow">Prescription</div>
+      <div class="m-title">${patient.name || 'Patient'}</div>
+      <div class="m-row"><span class="k">Reason</span><span class="v">${appt.reason || '—'}</span></div>
+      <div class="m-row"><span class="k">Time</span><span class="v">${appt.availableFrom} – ${appt.availableTo}</span></div>
+
+      <label style="display:block; font-size:12.5px; font-weight:600; margin:18px 0 8px;">Medicines</label>
+      <div class="med-labels"><span>Medicine</span><span>Time pattern</span><span></span></div>
+      <div id="med-rows">${medRowHtml(0)}</div>
+      <button type="button" class="add-med-btn" id="add-med">+ Add another medicine</button>
+      <div class="field-error" id="rx-error"></div>
+
+      <div class="m-actions">
+        <button class="btn btn-ghost" id="m-back">Cancel</button>
+        <button class="btn btn-primary" id="m-save-rx">Save prescription</button>
+      </div>
+    `);
+
+    const rowsEl = document.getElementById('med-rows');
+
+    document.getElementById('add-med').addEventListener('click', () => {
+      rowCount++;
+      rowsEl.insertAdjacentHTML('beforeend', medRowHtml(rowCount));
+    });
+
+    rowsEl.addEventListener('click', (e) => {
+      const removeBtn = e.target.closest('[data-remove]');
+      if(!removeBtn) return;
+      const rows = rowsEl.querySelectorAll('.med-row');
+      if(rows.length > 1) removeBtn.closest('.med-row').remove();
+    });
+
+    document.getElementById('m-back').addEventListener('click', closeModal);
+
+    document.getElementById('m-save-rx').addEventListener('click', async () => {
+      const rows = [...rowsEl.querySelectorAll('.med-row')];
+      const medicines = rows.map(r => ({
+        medicineName: r.querySelector('.med-name').value.trim(),
+        timePattern: r.querySelector('.med-time').value.trim()
+      })).filter(m => m.medicineName && m.timePattern);
+
+      if(!medicines.length){
+        document.getElementById('rx-error').textContent = 'Add at least one medicine with a time pattern.';
+        return;
+      }
+
+      const saveBtn = document.getElementById('m-save-rx');
+      saveBtn.disabled = true;
+      saveBtn.textContent = 'Saving…';
+
+      try {
+        await apiFetch(`/prescription?appointmentId=${appt.id}`, {
+          method: 'POST',
+          body: JSON.stringify(medicines)
+        });
+        closeModal();
+        showToast('Prescription saved.', 'success');
+        loadAppointments();
+      } catch(err){
+        document.getElementById('rx-error').textContent = err.message;
+        saveBtn.disabled = false;
+        saveBtn.textContent = 'Save prescription';
+      }
+    });
+  }
+
+  loadAppointments();
+</script>
+</body>
+</html>

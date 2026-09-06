@@ -1,0 +1,14 @@
+1. User opens the website or browser, It will first see the Login Page for Entering Username
+and Password. If they don't have account, In the login page there will be a text below submit
+button i.e. Register as User and there will be one more text Register as Doctor.
+
+2. Whichever text is clicked, page is moved onto that page and either User or Doctor will register
+their account. After successfully registering, In the User dashboard page, user will be able
+to see a list of doctors with specialization so that it can book the appointments with them.
+
+3. When user clicks on the Doctors List then the page will show DropDown box with Available Appointment
+or See Details. When user clicks on Available Appointment, application will show all the available
+slots which are non booked will be shown. If user select any slot then they will be ask successfully
+need to book the Slot. If yes, slot will be booked successfully.
+
+

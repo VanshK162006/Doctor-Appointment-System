@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Register as patient — Doctor Appointment System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink: #142621;
+    --paper: #EEF0EA;
+    --card: #FFFFFF;
+    --teal: #145C52;
+    --teal-deep: #0C2E29;
+    --teal-mid: #1C6E61;
+    --coral: #D9503B;
+    --coral-soft: rgba(217,80,59,0.10);
+    --sage: #E4EBE4;
+    --line: rgba(20,38,33,0.12);
+    --line-strong: rgba(20,38,33,0.24);
+    --shadow: 0 24px 48px -20px rgba(12,46,41,0.35), 0 2px 8px rgba(12,46,41,0.06);
+    --radius: 10px;
+    --radius-sm: 7px;
+  }
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; padding:0; }
+  body{
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'IBM Plex Sans', sans-serif;
+    min-height: 100vh;
+    display:grid;
+    grid-template-columns: minmax(300px, 36%) 1fr;
+  }
+  @media (max-width: 880px){ body{ grid-template-columns: 1fr; } }
+  a{ color:inherit; }
+  svg{ display:block; }
+
+  .logo{ display:inline-flex; align-items:center; gap:10px; text-decoration:none; color:inherit; }
+  .logo-badge{ width:30px; height:30px; flex-shrink:0; }
+  .logo-word{ font-family:'IBM Plex Mono', monospace; font-size:12px; font-weight:500; letter-spacing:0.02em; }
+
+  .brand-panel{
+    position: relative;
+    background:
+      radial-gradient(120% 90% at 100% 100%, rgba(217,80,59,0.10), transparent 55%),
+      linear-gradient(165deg, var(--teal-mid) 0%, var(--teal-deep) 62%);
+    color: var(--paper);
+    padding: 40px 40px;
+    display:flex;
+    flex-direction:column;
+    justify-content: space-between;
+    overflow:hidden;
+    isolation:isolate;
+  }
+  @media (max-width: 880px){ .brand-panel{ padding: 26px 22px 30px; } }
+
+  .clock-ring{ position:absolute; right:-140px; bottom:-140px; width:380px; height:380px; opacity:0.16; z-index:-1; pointer-events:none; }
+  @media (max-width: 880px){ .clock-ring{ display:none; } }
+
+  .brand-mark{
+    font-family:'Fraunces', serif;
+    font-weight:500;
+    font-size: clamp(23px, 3vw, 28px);
+    line-height:1.25;
+    letter-spacing: -0.01em;
+    max-width: 15ch;
+    margin-top: 34px;
+  }
+  .brand-mark span{ color: var(--coral); }
+
+  .steps{ margin-top:40px; display:flex; flex-direction:column; gap:16px; }
+  .step{ display:flex; gap:12px; align-items:flex-start; font-size:13.5px; color: rgba(238,240,234,0.72); }
+  .step .n{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    width:22px; height:22px;
+    border-radius:50%;
+    border:1px solid rgba(238,240,234,0.4);
+    display:flex; align-items:center; justify-content:center;
+    flex-shrink:0;
+  }
+  .step.done .n{ background: var(--coral); border-color: var(--coral); color:#fff; }
+  .step-label{ padding-top:2px; }
+
+  .brand-foot{ font-family:'IBM Plex Mono', monospace; font-size:10.5px; color: rgba(238,240,234,0.38); letter-spacing:0.08em; }
+
+  .form-panel{ display:flex; align-items:flex-start; justify-content:center; padding: 44px 24px; }
+
+  .form-card{
+    width:100%;
+    max-width: 460px;
+    background: var(--card);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 36px 34px 32px;
+    animation: cardIn .45s cubic-bezier(.2,.8,.2,1) both;
+  }
+  @media (max-width: 880px){ .form-card{ box-shadow:none; padding: 26px 4px 10px; } }
+  @keyframes cardIn{ from{ opacity:0; transform: translateY(10px); } to{ opacity:1; transform:translateY(0); } }
+  @media (prefers-reduced-motion: reduce){ .form-card{ animation:none; } }
+
+  .eyebrow{ font-family:'IBM Plex Mono', monospace; font-size:11px; letter-spacing:0.14em; text-transform:uppercase; color: var(--teal); }
+  h1{ font-family:'Fraunces', serif; font-weight:500; font-size: 26px; margin: 9px 0 6px; letter-spacing:-0.01em; }
+  .sub{ color: rgba(20,38,33,0.6); font-size: 14px; margin: 0 0 26px; line-height:1.55; }
+
+  form{ display:flex; flex-direction:column; gap: 16px; }
+  .row{ display:grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  @media (max-width: 520px){ .row{ grid-template-columns: 1fr; } }
+
+  .field label{ display:block; font-size: 12.5px; font-weight:600; letter-spacing:0.01em; margin-bottom: 7px; }
+  .field .hint{ font-weight:400; color: rgba(20,38,33,0.45); }
+  .field input{
+    width:100%; padding: 11px 13px; font-size: 15px; font-family:'IBM Plex Sans', sans-serif;
+    border: 1px solid var(--line-strong); border-radius: var(--radius-sm); background: #fff; color: var(--ink);
+    outline: none; transition: border-color .15s ease, box-shadow .15s ease;
+  }
+  .field input:focus-visible{ border-color: var(--teal); box-shadow: 0 0 0 3px rgba(20,92,82,0.14); }
+  .field-error{ font-size:12px; color: var(--coral); min-height: 15px; margin-top:5px; }
+
+  .submit-btn{
+    margin-top: 6px; padding: 12.5px 16px; display:flex; align-items:center; justify-content:center; gap:8px;
+    font-family:'IBM Plex Sans', sans-serif; font-size: 15px; font-weight:600; letter-spacing:0.01em;
+    color: var(--paper); background: var(--teal); border: none; border-radius: var(--radius-sm);
+    cursor: pointer; transition: background .15s ease, transform .1s ease;
+  }
+  .submit-btn:hover{ background: var(--teal-deep); }
+  .submit-btn:active{ transform: translateY(1px); }
+  .submit-btn:focus-visible{ outline: 2px solid var(--teal-deep); outline-offset: 2px; }
+  .submit-btn[disabled]{ opacity:0.6; cursor: default; }
+
+  .spinner{ width:14px; height:14px; border-radius:50%; border: 2px solid rgba(238,240,234,0.4); border-top-color: var(--paper); animation: spin .7s linear infinite; display:none; }
+  .submit-btn.loading .spinner{ display:inline-block; }
+  @keyframes spin{ to{ transform: rotate(360deg); } }
+
+  .banner{ display:none; align-items:flex-start; gap:8px; font-size: 13.5px; padding: 11px 13px; border-radius: var(--radius-sm); border: 1px solid transparent; line-height:1.5; margin-bottom: 18px; }
+  .banner.show{ display:flex; }
+  .banner.error{ background: rgba(217,80,59,0.08); border-color: rgba(217,80,59,0.28); color: var(--coral); }
+  .banner.info{ background: rgba(20,92,82,0.07); border-color: rgba(20,92,82,0.22); color: var(--teal-deep); }
+
+  .foot-link{ margin-top: 24px; font-size: 13.5px; text-align:center; color: rgba(20,38,33,0.6); }
+  .foot-link a{ color: var(--teal); font-weight:600; text-decoration:none; }
+  .foot-link a:hover{ text-decoration:underline; }
+</style>
+</head>
+<body>
+
+  <aside class="brand-panel">
+    <svg class="clock-ring" viewBox="0 0 200 200" fill="none">
+      <circle cx="100" cy="100" r="96" stroke="#EEF0EA" stroke-width="1"/>
+      <circle cx="100" cy="100" r="70" stroke="#EEF0EA" stroke-width="1"/>
+    </svg>
+
+    <div>
+      <a href="index.html" class="logo">
+        <svg class="logo-badge" viewBox="0 0 34 34" fill="none">
+          <circle cx="17" cy="17" r="15" stroke="#EEF0EA" stroke-width="1.3"/>
+          <path d="M17 10v14M10 17h14" stroke="#EEF0EA" stroke-width="1.6" stroke-linecap="round"/>
+          <circle cx="17" cy="3" r="2.1" fill="#D9503B"/>
+        </svg>
+        <span class="logo-word">DOCTOR&nbsp;APPOINTMENT&nbsp;SYS.</span>
+      </a>
+
+      <div class="brand-mark">Create your <span>patient account.</span></div>
+
+      <div class="steps">
+        <div class="step done"><span class="n">✓</span><span class="step-label">Fill in your details</span></div>
+        <div class="step"><span class="n">2</span><span class="step-label">Sign in with your new account</span></div>
+        <div class="step"><span class="n">3</span><span class="step-label">Browse doctors and book a slot</span></div>
+      </div>
+    </div>
+
+    <div class="brand-foot">PATIENT REGISTRATION</div>
+  </aside>
+
+  <main class="form-panel">
+    <div class="form-card">
+      <div class="eyebrow">New patient</div>
+      <h1>Create your account</h1>
+      <p class="sub">Takes under a minute. You'll use this email and password to sign in and book appointments.</p>
+
+      <div id="banner" class="banner"></div>
+
+      <form id="register-form" novalidate>
+        <div class="field">
+          <label for="name">Full name</label>
+          <input type="text" id="name" name="name" autocomplete="name" placeholder="Jane Doe" required>
+          <div class="field-error" id="name-error"></div>
+        </div>
+
+        <div class="field">
+          <label for="email">Email</label>
+          <input type="email" id="email" name="email" autocomplete="username" placeholder="you@example.com" required>
+          <div class="field-error" id="email-error"></div>
+        </div>
+
+        <div class="row">
+          <div class="field">
+            <label for="phone">Phone <span class="hint">(10 digits)</span></label>
+            <input type="tel" id="phone" name="phone" inputmode="numeric" maxlength="10" placeholder="9876543210" required>
+            <div class="field-error" id="phone-error"></div>
+          </div>
+          <div class="field">
+            <label for="password">Password <span class="hint">(8–14 chars)</span></label>
+            <input type="password" id="password" name="password" autocomplete="new-password" placeholder="••••••••" required>
+            <div class="field-error" id="password-error"></div>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="confirm">Confirm password</label>
+          <input type="password" id="confirm" name="confirm" autocomplete="new-password" placeholder="••••••••" required>
+          <div class="field-error" id="confirm-error"></div>
+        </div>
+
+        <button type="submit" class="submit-btn" id="submit-btn">
+          <span class="spinner"></span>
+          <span class="btn-text">Create account</span>
+        </button>
+      </form>
+
+      <div class="foot-link">Already registered? <a href="index.html">Sign in instead</a></div>
+    </div>
+  </main>
+
+<script>
+  const API_BASE_URL = 'http://localhost:8080/api/doctor_appointment_system';
+
+  const form = document.getElementById('register-form');
+  const banner = document.getElementById('banner');
+  const submitBtn = document.getElementById('submit-btn');
+  const btnText = submitBtn.querySelector('.btn-text');
+
+  const fields = ['name','email','phone','password','confirm'];
+
+  function clearErrors(){
+    fields.forEach(f => { const el = document.getElementById(f+'-error'); if(el) el.textContent = ''; });
+  }
+  function setFieldError(field, message){
+    const el = document.getElementById(field+'-error');
+    if(el) el.textContent = message;
+  }
+  function showBanner(kind, message){
+    banner.textContent = message;
+    banner.className = 'banner show ' + kind;
+  }
+  function setLoading(isLoading, label){
+    submitBtn.disabled = isLoading;
+    submitBtn.classList.toggle('loading', isLoading);
+    btnText.textContent = label;
+  }
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    clearErrors();
+    banner.className = 'banner';
+
+    const name = document.getElementById('name').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const phone = document.getElementById('phone').value.trim();
+    const password = document.getElementById('password').value;
+    const confirm = document.getElementById('confirm').value;
+
+    let valid = true;
+    if(!name){ setFieldError('name', 'Name is required.'); valid = false; }
+    if(!email || !/^\S+@\S+\.\S+$/.test(email)){ setFieldError('email', 'Enter a valid email.'); valid = false; }
+    if(!/^[0-9]{10}$/.test(phone)){ setFieldError('phone', 'Phone must be exactly 10 digits.'); valid = false; }
+    if(!password || password.length < 8 || password.length > 14){ setFieldError('password', 'Password must be 8–14 characters.'); valid = false; }
+    if(confirm !== password){ setFieldError('confirm', 'Passwords do not match.'); valid = false; }
+    if(!valid) return;
+
+    setLoading(true, 'Creating account…');
+
+    try {
+      const res = await fetch(`${API_BASE_URL}/patient/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, phone: Number(phone), password })
+      });
+
+      const text = await res.text();
+      let data = null;
+      try { data = text ? JSON.parse(text) : null; } catch(_) {}
+
+      if(!res.ok){
+        if(data && data.errors){
+          Object.entries(data.errors).forEach(([field, msg]) => setFieldError(field, msg));
+        }
+        showBanner('error', (data && data.message) || 'Could not create the account. Check the fields above.');
+        return;
+      }
+
+      window.location.href = 'index.html?registered=patient';
+
+    } catch (err) {
+      showBanner('error', 'Could not reach the server. Is the backend running on localhost:8080, and is CORS enabled? See README Section 7.');
+    } finally {
+      setLoading(false, 'Create account');
+    }
+  });
+</script>
+
+</body>
+</html>

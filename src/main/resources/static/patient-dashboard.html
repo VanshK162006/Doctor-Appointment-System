@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Patient Dashboard — Doctor Appointment System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#142621; --paper:#EEF0EA; --card:#FFFFFF;
+    --teal:#145C52; --teal-deep:#0C2E29; --teal-mid:#1C6E61;
+    --coral:#D9503B; --coral-soft:rgba(217,80,59,0.10);
+    --sage:#E4EBE4; --sage-strong:#C9DBCC;
+    --line:rgba(20,38,33,0.12); --line-strong:rgba(20,38,33,0.24);
+    --shadow:0 20px 40px -22px rgba(12,46,41,0.30), 0 2px 8px rgba(12,46,41,0.06);
+    --radius:10px; --radius-sm:7px;
+  }
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; padding:0; }
+  body{ background:var(--paper); color:var(--ink); font-family:'IBM Plex Sans', sans-serif; min-height:100vh; }
+  a{ color:inherit; } svg{ display:block; } button{ font-family:inherit; }
+
+  /* ---------- TOPBAR ---------- */
+  .topbar{
+    position:sticky; top:0; z-index:20;
+    background: var(--teal-deep);
+    color: var(--paper);
+    display:flex; align-items:center; gap:24px;
+    padding: 12px 28px;
+  }
+  .logo{ display:inline-flex; align-items:center; gap:9px; text-decoration:none; color:inherit; flex-shrink:0; }
+  .logo-badge{ width:26px; height:26px; }
+  .logo-word{ font-family:'IBM Plex Mono', monospace; font-size:11.5px; font-weight:500; letter-spacing:0.02em; }
+
+  .tabs{ display:flex; gap:4px; margin-left:8px; }
+  .tab-btn{
+    background:none; border:none; color: rgba(238,240,234,0.6);
+    font-size:14px; font-weight:500; padding:8px 14px; border-radius:6px;
+    cursor:pointer; transition: color .15s ease, background .15s ease;
+  }
+  .tab-btn:hover{ color: var(--paper); }
+  .tab-btn.active{ color: var(--paper); background: rgba(238,240,234,0.12); }
+
+  .topbar-right{ margin-left:auto; display:flex; align-items:center; gap:14px; }
+  .user-email{ font-family:'IBM Plex Mono', monospace; font-size:12px; color: rgba(238,240,234,0.55); }
+  .logout-btn{
+    background:none; border:1px solid rgba(238,240,234,0.3); color: var(--paper);
+    font-size:13px; padding:7px 12px; border-radius:6px; cursor:pointer;
+    transition: border-color .15s ease, background .15s ease;
+  }
+  .logout-btn:hover{ background: rgba(238,240,234,0.1); border-color: rgba(238,240,234,0.5); }
+
+  @media (max-width:720px){
+    .topbar{ flex-wrap:wrap; gap:10px; padding:12px 16px; }
+    .user-email{ display:none; }
+  }
+
+  /* ---------- SHELL ---------- */
+  .shell{ max-width: 1040px; margin: 0 auto; padding: 36px 28px 80px; }
+  @media (max-width:720px){ .shell{ padding: 24px 16px 60px; } }
+
+  .view{ display:none; }
+  .view.active{ display:block; animation: fadeIn .35s ease both; }
+  @keyframes fadeIn{ from{ opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);} }
+  @media (prefers-reduced-motion: reduce){ .view.active{ animation:none; } }
+
+  .view-head{ margin-bottom: 26px; }
+  .eyebrow{ font-family:'IBM Plex Mono', monospace; font-size:11px; letter-spacing:0.14em; text-transform:uppercase; color:var(--teal); }
+  h1{ font-family:'Fraunces', serif; font-weight:500; font-size:28px; margin:8px 0 4px; letter-spacing:-0.01em; }
+  .sub{ color: rgba(20,38,33,0.6); font-size:14px; margin:0; }
+
+  /* ---------- TOAST ---------- */
+  .toast{
+    position:fixed; top:20px; right:20px; z-index:100;
+    max-width: 340px; padding:13px 15px; border-radius: var(--radius-sm);
+    font-size:13.5px; line-height:1.5; box-shadow: var(--shadow);
+    transform: translateX(120%); transition: transform .25s ease;
+  }
+  .toast.show{ transform: translateX(0); }
+  .toast.success{ background: var(--teal-deep); color: var(--paper); }
+  .toast.error{ background:#fff; color: var(--coral); border:1px solid rgba(217,80,59,0.35); }
+
+  /* ---------- DOCTORS GRID ---------- */
+  .grid{ display:grid; grid-template-columns: repeat(auto-fill, minmax(240px,1fr)); gap:14px; }
+
+  .doctor-card{
+    background: var(--card); border:1px solid var(--line); border-radius: var(--radius);
+    padding: 18px 18px 16px; cursor:pointer; transition: border-color .15s ease, transform .12s ease, box-shadow .15s ease;
+  }
+  .doctor-card:hover{ border-color: var(--line-strong); transform: translateY(-2px); box-shadow: var(--shadow); }
+
+  .dc-top{ display:flex; justify-content:space-between; align-items:flex-start; gap:8px; margin-bottom:10px; }
+  .dc-name{ font-weight:600; font-size:15.5px; }
+  .dc-spec{
+    font-family:'IBM Plex Mono', monospace; font-size:10.5px; letter-spacing:0.04em; text-transform:uppercase;
+    color: var(--teal); background: var(--sage); padding:3px 7px; border-radius:4px; white-space:nowrap;
+  }
+  .dc-meta{ display:flex; gap:14px; font-size:12.5px; color: rgba(20,38,33,0.55); margin-bottom:8px; }
+  .dc-address{ font-size:12.5px; color: rgba(20,38,33,0.5); }
+
+  .empty-state{
+    text-align:center; padding: 50px 20px; color: rgba(20,38,33,0.45); font-size:14px;
+    border: 1px dashed var(--line-strong); border-radius: var(--radius);
+  }
+  .loading-state{ text-align:center; padding:50px 20px; color: rgba(20,38,33,0.5); font-size:14px; }
+
+  /* ---------- APPOINTMENTS LIST ---------- */
+  .appt-card{
+    background: var(--card); border:1px solid var(--line); border-radius: var(--radius);
+    padding: 16px 18px; margin-bottom:12px; display:flex; align-items:center; gap:16px; flex-wrap:wrap;
+  }
+  .appt-main{ flex:1; min-width:200px; }
+  .appt-doctor{ font-weight:600; font-size:14.5px; margin-bottom:3px; }
+  .appt-meta{ font-size:12.5px; color: rgba(20,38,33,0.55); }
+  .appt-reason{ font-size:12.5px; color: rgba(20,38,33,0.65); margin-top:5px; }
+  .appt-actions{ display:flex; gap:8px; align-items:center; }
+
+  .pill{
+    font-family:'IBM Plex Mono', monospace; font-size:10.5px; letter-spacing:0.05em; text-transform:uppercase;
+    padding: 4px 9px; border-radius: 20px; white-space:nowrap;
+  }
+  .pill.scheduled{ background: rgba(20,92,82,0.10); color: var(--teal); }
+  .pill.completed{ background: var(--sage-strong); color: var(--teal-deep); }
+  .pill.cancelled{ background: var(--coral-soft); color: var(--coral); }
+
+  /* ---------- BUTTONS ---------- */
+  .btn{
+    font-size:13.5px; font-weight:600; padding:9px 14px; border-radius: var(--radius-sm);
+    border:1px solid transparent; cursor:pointer; transition: background .15s ease, border-color .15s ease, transform .1s ease;
+  }
+  .btn:active{ transform: translateY(1px); }
+  .btn-primary{ background: var(--teal); color: var(--paper); }
+  .btn-primary:hover{ background: var(--teal-deep); }
+  .btn-ghost{ background:none; border-color: var(--line-strong); color: var(--ink); }
+  .btn-ghost:hover{ background: var(--sage); }
+  .btn-danger{ background:none; border-color: rgba(217,80,59,0.4); color: var(--coral); }
+  .btn-danger:hover{ background: var(--coral-soft); }
+  .btn[disabled]{ opacity:0.45; cursor:not-allowed; }
+  .btn.full{ width:100%; }
+
+  /* ---------- MODAL ---------- */
+  .modal-overlay{
+    display:none; position:fixed; inset:0; background: rgba(12,25,22,0.45);
+    align-items:center; justify-content:center; z-index:50; padding:20px;
+  }
+  .modal-overlay.show{ display:flex; }
+  .modal{
+    background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow);
+    max-width: 460px; width:100%; max-height:86vh; overflow-y:auto; position:relative;
+    padding: 30px 28px 26px; animation: modalIn .25s ease both;
+  }
+  @keyframes modalIn{ from{opacity:0; transform:translateY(8px) scale(.98);} to{opacity:1; transform:translateY(0) scale(1);} }
+  @media (prefers-reduced-motion: reduce){ .modal{ animation:none; } }
+  .modal-close{
+    position:absolute; top:14px; right:14px; background:none; border:none; font-size:20px;
+    color: rgba(20,38,33,0.4); cursor:pointer; line-height:1; padding:4px;
+  }
+  .modal-close:hover{ color: var(--ink); }
+
+  .m-eyebrow{ font-family:'IBM Plex Mono', monospace; font-size:10.5px; letter-spacing:0.12em; text-transform:uppercase; color:var(--teal); }
+  .m-title{ font-family:'Fraunces', serif; font-weight:500; font-size:21px; margin:7px 0 14px; }
+  .m-row{ display:flex; justify-content:space-between; font-size:13.5px; padding:8px 0; border-bottom:1px solid var(--line); }
+  .m-row .k{ color: rgba(20,38,33,0.55); }
+  .m-row .v{ font-weight:500; text-align:right; }
+  .m-actions{ display:flex; gap:10px; margin-top:20px; }
+  .m-actions .btn{ flex:1; }
+
+  .slot-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:8px; margin-top:6px; }
+  .slot-btn{
+    font-family:'IBM Plex Mono', monospace; font-size:12.5px; padding:10px 8px; text-align:center;
+    border:1px solid var(--line-strong); border-radius: var(--radius-sm); background:#fff; cursor:pointer;
+    transition: border-color .15s ease, background .15s ease;
+  }
+  .slot-btn:hover{ border-color: var(--teal); background: var(--sage); }
+  .slot-btn.selected{ border-color: var(--teal); background: var(--teal); color: var(--paper); }
+
+  textarea{
+    width:100%; padding:11px 13px; font-size:14px; font-family:'IBM Plex Sans', sans-serif;
+    border:1px solid var(--line-strong); border-radius: var(--radius-sm); resize:vertical; min-height:70px;
+    outline:none; transition: border-color .15s ease, box-shadow .15s ease;
+  }
+  textarea:focus-visible{ border-color: var(--teal); box-shadow: 0 0 0 3px rgba(20,92,82,0.14); }
+  .field-error{ font-size:12px; color: var(--coral); min-height:15px; margin-top:5px; }
+
+  .rx-table{ width:100%; border-collapse:collapse; margin-top:10px; font-size:13px; }
+  .rx-table th{ text-align:left; font-family:'IBM Plex Mono', monospace; font-size:10.5px; text-transform:uppercase; letter-spacing:0.05em; color: rgba(20,38,33,0.45); padding:6px 0; border-bottom:1px solid var(--line); }
+  .rx-table td{ padding:9px 0; border-bottom:1px solid var(--line); }
+</style>
+</head>
+<body>
+
+  <header class="topbar">
+    <a href="index.html" class="logo">
+      <svg class="logo-badge" viewBox="0 0 34 34" fill="none">
+        <circle cx="17" cy="17" r="15" stroke="#EEF0EA" stroke-width="1.3"/>
+        <path d="M17 10v14M10 17h14" stroke="#EEF0EA" stroke-width="1.6" stroke-linecap="round"/>
+        <circle cx="17" cy="3" r="2.1" fill="#D9503B"/>
+      </svg>
+      <span class="logo-word">DOCTOR&nbsp;APPOINTMENT&nbsp;SYS.</span>
+    </a>
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="doctors">Doctors</button>
+      <button class="tab-btn" data-tab="appointments">Appointments</button>
+    </div>
+    <div class="topbar-right">
+      <span class="user-email" id="user-email"></span>
+      <button class="logout-btn" id="logout-btn">Log out</button>
+    </div>
+  </header>
+
+  <main class="shell">
+    <div id="toast" class="toast"></div>
+
+    <section class="view active" id="view-doctors">
+      <div class="view-head">
+        <div class="eyebrow">Doctors</div>
+        <h1>Find a doctor</h1>
+        <p class="sub">Pick a doctor to see their open slots and book a visit.</p>
+      </div>
+      <div id="doctors-grid" class="grid"><div class="loading-state">Loading doctors…</div></div>
+    </section>
+
+    <section class="view" id="view-appointments">
+      <div class="view-head">
+        <div class="eyebrow">Appointments</div>
+        <h1>Your appointments</h1>
+        <p class="sub">Scheduled, completed, and cancelled — all in one place.</p>
+      </div>
+      <div id="appointments-list"><div class="loading-state">Loading appointments…</div></div>
+    </section>
+  </main>
+
+  <div class="modal-overlay" id="modal-overlay">
+    <div class="modal">
+      <button class="modal-close" id="modal-close">×</button>
+      <div id="modal-body"></div>
+    </div>
+  </div>
+
+<script>
+  const API_BASE_URL = 'http://localhost:8080/api/doctor_appointment_system';
+
+  // ---------- Auth guard ----------
+  const token = sessionStorage.getItem('das_token');
+  const email = sessionStorage.getItem('das_email');
+  if(!token){ window.location.href = 'index.html'; }
+  document.getElementById('user-email').textContent = email || '';
+
+  document.getElementById('logout-btn').addEventListener('click', () => {
+    sessionStorage.removeItem('das_token');
+    sessionStorage.removeItem('das_email');
+    window.location.href = 'index.html';
+  });
+
+  // ---------- API helper ----------
+  async function apiFetch(path, options = {}){
+    const res = await fetch(`${API_BASE_URL}${path}`, {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+        ...(options.headers || {})
+      }
+    });
+
+    if(res.status === 401){
+      sessionStorage.removeItem('das_token');
+      sessionStorage.removeItem('das_email');
+      window.location.href = 'index.html';
+      throw new Error('Session expired.');
+    }
+
+    const text = await res.text();
+    let data = null;
+    try { data = text ? JSON.parse(text) : null; } catch(_) { data = text; }
+
+    if(!res.ok){
+      let message = (data && data.message) || 'Request failed.';
+      if(res.status === 403 || res.status === 500){
+        message += ' — this looks like the role-check bug described in README Section 7 (hasRole vs hasAuthority). Fix that in SecurityConfiguration/controllers, then retry.';
+      }
+      throw new Error(message);
+    }
+    return data;
+  }
+
+  // ---------- Toast ----------
+  let toastTimer;
+  function showToast(message, kind = 'success'){
+    const toast = document.getElementById('toast');
+    toast.textContent = message;
+    toast.className = 'toast show ' + kind;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toast.classList.remove('show'), 4000);
+  }
+
+  // ---------- Tabs ----------
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('view-' + btn.dataset.tab).classList.add('active');
+      if(btn.dataset.tab === 'appointments') loadAppointments();
+    });
+  });
+
+  // ---------- Modal ----------
+  const overlay = document.getElementById('modal-overlay');
+  const modalBody = document.getElementById('modal-body');
+  function openModal(html){ modalBody.innerHTML = html; overlay.classList.add('show'); }
+  function closeModal(){ overlay.classList.remove('show'); modalBody.innerHTML = ''; }
+  document.getElementById('modal-close').addEventListener('click', closeModal);
+  overlay.addEventListener('click', (e) => { if(e.target === overlay) closeModal(); });
+
+  function formatTime(t){
+    if(!t) return '';
+    if(/[AP]M$/i.test(t)) return t; // already formatted by backend
+    const d = new Date(`1970-01-01T${t}`);
+    if(isNaN(d)) return t;
+    return d.toLocaleTimeString('en-US', { hour:'numeric', minute:'2-digit' });
+  }
+
+  // ---------- Doctors ----------
+  let doctorsCache = [];
+
+  async function loadDoctors(){
+    const grid = document.getElementById('doctors-grid');
+    try {
+      const doctors = await apiFetch('/dashboard/patient/list_of_doctors');
+      doctorsCache = doctors || [];
+      if(!doctorsCache.length){
+        grid.innerHTML = `<div class="empty-state">No doctors have registered yet. Check back soon.</div>`;
+        return;
+      }
+      grid.innerHTML = doctorsCache.map(d => `
+        <div class="doctor-card" data-id="${d.id}">
+          <div class="dc-top">
+            <span class="dc-name">${d.name}</span>
+            <span class="dc-spec">${d.specialization}</span>
+          </div>
+          <div class="dc-meta">
+            <span>${d.yearsOfExperience} yrs exp</span>
+            <span>${formatTime(d.availableFrom)}–${formatTime(d.availableTo)}</span>
+          </div>
+          <div class="dc-address">${d.address}</div>
+        </div>
+      `).join('');
+    } catch(err){
+      grid.innerHTML = `<div class="empty-state">${err.message}</div>`;
+    }
+  }
+
+  document.getElementById('doctors-grid').addEventListener('click', (e) => {
+    const card = e.target.closest('.doctor-card');
+    if(!card) return;
+    const doctor = doctorsCache.find(d => String(d.id) === card.dataset.id);
+    if(doctor) openDoctorDetail(doctor);
+  });
+
+  function openDoctorDetail(doctor){
+    openModal(`
+      <div class="m-eyebrow">Doctor</div>
+      <div class="m-title">${doctor.name}</div>
+      <div class="m-row"><span class="k">Specialization</span><span class="v">${doctor.specialization}</span></div>
+      <div class="m-row"><span class="k">Experience</span><span class="v">${doctor.yearsOfExperience} years</span></div>
+      <div class="m-row"><span class="k">Hours</span><span class="v">${formatTime(doctor.availableFrom)} – ${formatTime(doctor.availableTo)}</span></div>
+      <div class="m-row"><span class="k">Phone</span><span class="v">${doctor.phone}</span></div>
+      <div class="m-row"><span class="k">Address</span><span class="v">${doctor.address}</span></div>
+      <div class="m-actions">
+        <button class="btn btn-ghost" id="m-cancel">Cancel</button>
+        <button class="btn btn-primary" id="m-book">Book appointment</button>
+      </div>
+    `);
+    document.getElementById('m-cancel').addEventListener('click', closeModal);
+    document.getElementById('m-book').addEventListener('click', () => openSlotPicker(doctor));
+  }
+
+  async function openSlotPicker(doctor){
+    openModal(`
+      <div class="m-eyebrow">${doctor.name}</div>
+      <div class="m-title">Choose a slot</div>
+      <div id="slots-area" class="loading-state" style="padding:30px 0;">Loading open slots…</div>
+    `);
+    try {
+      const slots = await apiFetch(`/slots/${doctor.id}`);
+      const area = document.getElementById('slots-area');
+      if(!slots || !slots.length){
+        area.outerHTML = `<div class="empty-state">No open slots for this doctor right now.</div>
+          <div class="m-actions"><button class="btn btn-ghost full" id="m-back">Back</button></div>`;
+        document.getElementById('m-back').addEventListener('click', () => openDoctorDetail(doctor));
+        return;
+      }
+      area.outerHTML = `<div class="slot-grid" id="slot-grid">
+        ${slots.map(s => `<button class="slot-btn" data-id="${s.id}">${s.startTime}–${s.endTime}</button>`).join('')}
+      </div>
+      <div class="m-actions"><button class="btn btn-ghost full" id="m-back">Back</button></div>`;
+
+      document.getElementById('m-back').addEventListener('click', () => openDoctorDetail(doctor));
+      document.getElementById('slot-grid').addEventListener('click', (e) => {
+        const btn = e.target.closest('.slot-btn');
+        if(!btn) return;
+        const slot = slots.find(s => String(s.id) === btn.dataset.id);
+        openBookingConfirm(doctor, slot);
+      });
+    } catch(err){
+      document.getElementById('slots-area').outerHTML = `<div class="empty-state">${err.message}</div>`;
+    }
+  }
+
+  function openBookingConfirm(doctor, slot){
+    openModal(`
+      <div class="m-eyebrow">Confirm booking</div>
+      <div class="m-title">${slot.startTime} – ${slot.endTime}</div>
+      <div class="m-row"><span class="k">Doctor</span><span class="v">${doctor.name}</span></div>
+      <div class="m-row"><span class="k">Specialization</span><span class="v">${doctor.specialization}</span></div>
+      <label style="display:block; font-size:12.5px; font-weight:600; margin:16px 0 7px;">Reason for visit</label>
+      <textarea id="reason-input" placeholder="e.g. Annual checkup, persistent cough…"></textarea>
+      <div class="field-error" id="reason-error"></div>
+      <div class="m-actions">
+        <button class="btn btn-ghost" id="m-back">Back</button>
+        <button class="btn btn-primary" id="m-confirm">Confirm booking</button>
+      </div>
+    `);
+    document.getElementById('m-back').addEventListener('click', () => openSlotPicker(doctor));
+    document.getElementById('m-confirm').addEventListener('click', async () => {
+      const reasonInput = document.getElementById('reason-input');
+      const reason = reasonInput.value.trim();
+      if(!reason){
+        document.getElementById('reason-error').textContent = 'Please tell the doctor why you\'re visiting.';
+        return;
+      }
+      const confirmBtn = document.getElementById('m-confirm');
+      confirmBtn.disabled = true;
+      confirmBtn.textContent = 'Booking…';
+      try {
+        await apiFetch('/appointment/book', {
+          method: 'POST',
+          body: JSON.stringify({ slotId: slot.id, reason })
+        });
+        closeModal();
+        showToast('Appointment booked.', 'success');
+        document.querySelector('.tab-btn[data-tab="appointments"]').click();
+      } catch(err){
+        document.getElementById('reason-error').textContent = err.message;
+        confirmBtn.disabled = false;
+        confirmBtn.textContent = 'Confirm booking';
+      }
+    });
+  }
+
+  // ---------- Appointments ----------
+  async function loadAppointments(){
+    const list = document.getElementById('appointments-list');
+    list.innerHTML = `<div class="loading-state">Loading appointments…</div>`;
+    try {
+      const appts = await apiFetch('/dashboard/patient/list_of_appointment');
+      if(!appts || !appts.length){
+        list.innerHTML = `<div class="empty-state">You haven't booked any appointments yet.</div>`;
+        return;
+      }
+      list.innerHTML = appts.map((a, idx) => {
+        const status = (a.status || 'scheduled').toLowerCase();
+        const hasId = a.id !== undefined && a.id !== null;
+        let actionHtml = '';
+        if(status === 'scheduled'){
+          actionHtml = `<button class="btn btn-danger" data-action="cancel" data-idx="${idx}" ${hasId ? '' : 'disabled title="Backend needs an id field on this response — see chat notes"'}>Cancel</button>`;
+        } else if(status === 'completed'){
+          actionHtml = `<button class="btn btn-ghost" data-action="prescription" data-idx="${idx}" ${hasId ? '' : 'disabled title="Backend needs an id field on this response — see chat notes"'}>View prescription</button>`;
+        }
+        return `
+          <div class="appt-card">
+            <div class="appt-main">
+              <div class="appt-doctor">${a.doctorName}</div>
+              <div class="appt-meta">${a.availableFrom} – ${a.availableTo} · ${a.doctorEmail}</div>
+              <div class="appt-reason">${a.reason || ''}</div>
+            </div>
+            <span class="pill ${status}">${status}</span>
+            <div class="appt-actions">${actionHtml}</div>
+          </div>
+        `;
+      }).join('');
+      window.__appts = appts;
+    } catch(err){
+      list.innerHTML = `<div class="empty-state">${err.message}</div>`;
+    }
+  }
+
+  document.getElementById('appointments-list').addEventListener('click', async (e) => {
+    const btn = e.target.closest('[data-action]');
+    if(!btn) return;
+    const appt = window.__appts[Number(btn.dataset.idx)];
+
+    if(btn.dataset.action === 'cancel'){
+      openModal(`
+        <div class="m-eyebrow">Cancel appointment</div>
+        <div class="m-title">Are you sure?</div>
+        <div class="m-row"><span class="k">Doctor</span><span class="v">${appt.doctorName}</span></div>
+        <div class="m-row"><span class="k">Time</span><span class="v">${appt.availableFrom} – ${appt.availableTo}</span></div>
+        <div class="m-actions">
+          <button class="btn btn-ghost" id="m-back">Keep it</button>
+          <button class="btn btn-danger" id="m-confirm-cancel">Cancel appointment</button>
+        </div>
+      `);
+      document.getElementById('m-back').addEventListener('click', closeModal);
+      document.getElementById('m-confirm-cancel').addEventListener('click', async () => {
+        try {
+          await apiFetch(`/appointment/cancel/${appt.id}`, { method: 'PUT' });
+          closeModal();
+          showToast('Appointment cancelled.', 'success');
+          loadAppointments();
+        } catch(err){
+          showToast(err.message, 'error');
+        }
+      });
+    }
+
+    if(btn.dataset.action === 'prescription'){
+      openModal(`<div class="loading-state" style="padding:30px 0;">Loading prescription…</div>`);
+      try {
+        const rx = await apiFetch(`/prescription?appointmentId=${appt.id}`);
+        openModal(`
+          <div class="m-eyebrow">Prescription</div>
+          <div class="m-title">${rx.doctorName}</div>
+          <div class="m-row"><span class="k">Patient</span><span class="v">${rx.patientName}</span></div>
+          <table class="rx-table">
+            <thead><tr><th>Medicine</th ><th>Time pattern</th></tr></thead>
+            <tbody>
+              ${(rx.medicines || []).map(m => `<tr><td>${m.medicineName}</td><td>${m.timePattern}</td></tr>`).join('')}
+            </tbody>
+          </table>
+          <div class="m-actions"><button class="btn btn-ghost full" id="m-close">Close</button></div>
+        `);
+        document.getElementById('m-close').addEventListener('click', closeModal);
+      } catch(err){
+        openModal(`<div class="empty-state">${err.message}</div>`);
+      }
+    }
+  });
+
+  // ---------- Init ----------
+  loadDoctors();
+</script>
+</body>
+</html>

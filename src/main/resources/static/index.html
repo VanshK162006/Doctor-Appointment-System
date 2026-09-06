@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sign in — Doctor Appointment System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink: #142621;
+    --paper: #EEF0EA;
+    --card: #FFFFFF;
+    --teal: #145C52;
+    --teal-deep: #0C2E29;
+    --teal-mid: #1C6E61;
+    --coral: #D9503B;
+    --coral-soft: rgba(217,80,59,0.10);
+    --sage: #E4EBE4;
+    --line: rgba(20,38,33,0.12);
+    --line-strong: rgba(20,38,33,0.24);
+    --shadow: 0 24px 48px -20px rgba(12,46,41,0.35), 0 2px 8px rgba(12,46,41,0.06);
+    --radius: 10px;
+    --radius-sm: 7px;
+  }
+
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; padding:0; }
+
+  body{
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'IBM Plex Sans', sans-serif;
+    min-height: 100vh;
+    display:grid;
+    grid-template-columns: minmax(340px, 44%) 1fr;
+  }
+
+  @media (max-width: 880px){
+    body{ grid-template-columns: 1fr; }
+  }
+
+  a{ color:inherit; }
+  svg{ display:block; }
+
+  /* ---------- LOGO ---------- */
+  .logo{
+    display:inline-flex;
+    align-items:center;
+    gap:10px;
+    text-decoration:none;
+    color:inherit;
+  }
+  .logo-badge{
+    width:32px; height:32px;
+    flex-shrink:0;
+  }
+  .logo-word{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:13px;
+    font-weight:500;
+    letter-spacing:0.02em;
+  }
+
+  /* ---------- BRAND / SIGNATURE PANEL ---------- */
+  .brand-panel{
+    position: relative;
+    background:
+      radial-gradient(120% 90% at 100% 100%, rgba(217,80,59,0.10), transparent 55%),
+      linear-gradient(165deg, var(--teal-mid) 0%, var(--teal-deep) 62%);
+    color: var(--paper);
+    padding: 40px 44px;
+    display:flex;
+    flex-direction:column;
+    justify-content: space-between;
+    overflow:hidden;
+    isolation:isolate;
+  }
+
+  @media (max-width: 880px){
+    .brand-panel{ padding: 28px 22px 34px; }
+  }
+
+  /* faint decorative clock ring — the signature element */
+  .clock-ring{
+    position:absolute;
+    right:-140px;
+    bottom:-140px;
+    width:420px;
+    height:420px;
+    opacity:0.16;
+    z-index:-1;
+    pointer-events:none;
+  }
+  @media (max-width: 880px){
+    .clock-ring{ width:280px; height:280px; right:-100px; bottom:-120px; }
+  }
+
+  .brand-top{ position:relative; z-index:1; }
+
+  .brand-mark{
+    font-family:'Fraunces', serif;
+    font-optical-sizing:auto;
+    font-weight:500;
+    font-size: clamp(26px, 3.6vw, 34px);
+    line-height:1.18;
+    letter-spacing: -0.01em;
+    max-width: 10ch;
+    margin-top: 28px;
+  }
+
+  .brand-mark span{ color: var(--coral); }
+
+  .brand-tag{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color: rgba(238,240,234,0.55);
+    margin-top:12px;
+  }
+
+  /* schedule strip */
+  .strip{
+    margin-top: 46px;
+    border-top: 1px solid rgba(238,240,234,0.16);
+    position:relative;
+    z-index:1;
+  }
+
+  .strip-row{
+    display:flex;
+    align-items:baseline;
+    gap: 14px;
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(238,240,234,0.12);
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 12.5px;
+    color: rgba(238,240,234,0.42);
+    opacity:0;
+    animation: rise .5s ease forwards;
+  }
+
+  .strip-row .t{ width: 60px; flex-shrink:0; }
+  .strip-row .label{
+    font-family:'IBM Plex Sans', sans-serif;
+    font-size:13px;
+    letter-spacing:0.01em;
+  }
+  .strip-row .no{
+    margin-left:auto;
+    font-size:11px;
+    color: rgba(238,240,234,0.3);
+  }
+
+  .strip-row.active{ color: var(--paper); }
+  .strip-row.active .t{ color: var(--coral); }
+  .strip-row.active .label{ color: var(--paper); font-weight:500; }
+
+  .pulse-dot{
+    width:6px; height:6px; border-radius:50%;
+    background: var(--coral);
+    display:inline-block;
+    animation: pulse 2.2s ease-in-out infinite;
+  }
+
+  @keyframes pulse{
+    0%,100%{ opacity:1; transform:scale(1); }
+    50%{ opacity:0.3; transform:scale(0.65); }
+  }
+  @keyframes rise{
+    from{ opacity:0; transform:translateY(6px); }
+    to{ opacity:1; transform:translateY(0); }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .pulse-dot{ animation:none; }
+    .strip-row{ animation:none; opacity:1; }
+  }
+
+  @media (max-width: 880px){
+    .strip-row:nth-child(n+4){ display:none; }
+  }
+
+  .brand-foot{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:10.5px;
+    color: rgba(238,240,234,0.38);
+    letter-spacing:0.08em;
+    position:relative; z-index:1;
+  }
+
+  /* ---------- FORM PANEL ---------- */
+  .form-panel{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding: 44px 28px;
+  }
+
+  .form-card{
+    width:100%;
+    max-width: 400px;
+    background: var(--card);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 38px 36px 34px;
+    animation: cardIn .45s cubic-bezier(.2,.8,.2,1) both;
+  }
+
+  @media (max-width: 880px){
+    .form-card{ box-shadow:none; padding: 30px 4px 10px; }
+  }
+
+  @keyframes cardIn{
+    from{ opacity:0; transform: translateY(10px); }
+    to{ opacity:1; transform:translateY(0); }
+  }
+  @media (prefers-reduced-motion: reduce){ .form-card{ animation:none; } }
+
+  .eyebrow{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color: var(--teal);
+  }
+
+  h1{
+    font-family:'Fraunces', serif;
+    font-weight:500;
+    font-size: 28px;
+    margin: 9px 0 6px;
+    letter-spacing:-0.01em;
+  }
+
+  .sub{
+    color: rgba(20,38,33,0.6);
+    font-size: 14px;
+    margin: 0 0 28px;
+    line-height:1.55;
+  }
+
+  form{ display:flex; flex-direction:column; gap: 16px; }
+
+  .field label{
+    display:block;
+    font-size: 12.5px;
+    font-weight:600;
+    letter-spacing:0.01em;
+    margin-bottom: 7px;
+  }
+
+  .field input{
+    width:100%;
+    padding: 11px 13px;
+    font-size: 15px;
+    font-family:'IBM Plex Sans', sans-serif;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-sm);
+    background: #fff;
+    color: var(--ink);
+    outline: none;
+    transition: border-color .15s ease, box-shadow .15s ease;
+  }
+
+  .field input:focus-visible{
+    border-color: var(--teal);
+    box-shadow: 0 0 0 3px rgba(20,92,82,0.14);
+  }
+
+  .field-error{
+    font-size:12px;
+    color: var(--coral);
+    min-height: 15px;
+    margin-top:5px;
+  }
+
+  .submit-btn{
+    margin-top: 4px;
+    padding: 12.5px 16px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    font-family:'IBM Plex Sans', sans-serif;
+    font-size: 15px;
+    font-weight:600;
+    letter-spacing:0.01em;
+    color: var(--paper);
+    background: var(--teal);
+    border: none;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: background .15s ease, transform .1s ease;
+  }
+
+  .submit-btn:hover{ background: var(--teal-deep); }
+  .submit-btn:active{ transform: translateY(1px); }
+  .submit-btn:focus-visible{ outline: 2px solid var(--teal-deep); outline-offset: 2px; }
+  .submit-btn[disabled]{ opacity:0.6; cursor: default; }
+
+  .spinner{
+    width:14px; height:14px;
+    border-radius:50%;
+    border: 2px solid rgba(238,240,234,0.4);
+    border-top-color: var(--paper);
+    animation: spin .7s linear infinite;
+    display:none;
+  }
+  .submit-btn.loading .spinner{ display:inline-block; }
+  @keyframes spin{ to{ transform: rotate(360deg); } }
+
+  .banner{
+    display:none;
+    align-items:flex-start;
+    gap:8px;
+    font-size: 13.5px;
+    padding: 11px 13px;
+    border-radius: var(--radius-sm);
+    border: 1px solid transparent;
+    line-height:1.5;
+    margin-bottom: 18px;
+  }
+  .banner.show{ display:flex; }
+  .banner.error{ background: rgba(217,80,59,0.08); border-color: rgba(217,80,59,0.28); color: var(--coral); }
+  .banner.info{ background: rgba(20,92,82,0.07); border-color: rgba(20,92,82,0.22); color: var(--teal-deep); }
+
+  .divider{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    margin: 28px 0 18px;
+    color: rgba(20,38,33,0.38);
+    font-size:11px;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    font-family:'IBM Plex Mono', monospace;
+  }
+  .divider::before, .divider::after{ content:""; height:1px; background: var(--line); flex:1; }
+
+  .register-links{ display:flex; flex-direction:column; gap: 10px; }
+
+  .register-link{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    padding: 12px 14px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    text-decoration:none;
+    color: var(--ink);
+    font-size: 14px;
+    transition: border-color .15s ease, background .15s ease, transform .1s ease;
+  }
+  .register-link:hover{ border-color: var(--line-strong); background: var(--sage); transform: translateX(2px); }
+
+  .rl-icon{
+    width:34px; height:34px;
+    border-radius:50%;
+    background: var(--coral-soft);
+    color: var(--coral);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    flex-shrink:0;
+  }
+  .rl-icon svg{ width:17px; height:17px; }
+
+  .register-link .rl-title{ font-weight:600; display:block; }
+  .register-link .rl-sub{ display:block; font-size:12px; color: rgba(20,38,33,0.55); font-weight:400; margin-top:1px; }
+  .register-link .arrow{ margin-left:auto; font-family:'IBM Plex Mono', monospace; color: var(--coral); }
+</style>
+</head>
+<body>
+
+  <aside class="brand-panel">
+    <svg class="clock-ring" viewBox="0 0 200 200" fill="none">
+      <circle cx="100" cy="100" r="96" stroke="#EEF0EA" stroke-width="1"/>
+      <circle cx="100" cy="100" r="70" stroke="#EEF0EA" stroke-width="1"/>
+      <g stroke="#EEF0EA" stroke-width="1.5">
+        <line x1="100" y1="4" x2="100" y2="16"/>
+        <line x1="100" y1="184" x2="100" y2="196"/>
+        <line x1="4" y1="100" x2="16" y2="100"/>
+        <line x1="184" y1="100" x2="196" y2="100"/>
+      </g>
+    </svg>
+
+    <div class="brand-top">
+      <a href="index.html" class="logo">
+        <svg class="logo-badge" viewBox="0 0 34 34" fill="none">
+          <circle cx="17" cy="17" r="15" stroke="#EEF0EA" stroke-width="1.3"/>
+          <path d="M17 10v14M10 17h14" stroke="#EEF0EA" stroke-width="1.6" stroke-linecap="round"/>
+          <circle cx="17" cy="3" r="2.1" fill="#D9503B"/>
+        </svg>
+        <span class="logo-word">DOCTOR&nbsp;APPOINTMENT&nbsp;SYS.</span>
+      </a>
+
+      <div class="brand-mark">Care, <span>on the clock.</span></div>
+      <div class="brand-tag">Slot-based clinic booking</div>
+
+      <div class="strip" id="strip"></div>
+    </div>
+
+    <div class="brand-foot">SCHEDULED · CANCELLED · COMPLETED</div>
+  </aside>
+
+  <main class="form-panel">
+    <div class="form-card">
+      <div class="eyebrow">Sign in</div>
+      <h1>Welcome back</h1>
+      <p class="sub">Enter the email and password you registered with — patients and doctors both sign in here.</p>
+
+      <div id="banner" class="banner"></div>
+
+      <form id="login-form" novalidate>
+        <div class="field">
+          <label for="email">Email</label>
+          <input type="email" id="email" name="email" autocomplete="username" placeholder="you@example.com" required>
+          <div class="field-error" id="email-error"></div>
+        </div>
+
+        <div class="field">
+          <label for="password">Password</label>
+          <input type="password" id="password" name="password" autocomplete="current-password" placeholder="••••••••" required>
+          <div class="field-error" id="password-error"></div>
+        </div>
+
+        <button type="submit" class="submit-btn" id="submit-btn">
+          <span class="spinner"></span>
+          <span class="btn-text">Sign in</span>
+        </button>
+      </form>
+
+      <div class="divider">New here</div>
+
+      <div class="register-links">
+        <a class="register-link" href="register-patient.html">
+          <span class="rl-icon">
+            <svg viewBox="0 0 20 20" fill="none"><circle cx="10" cy="6.5" r="3.5" stroke="currentColor" stroke-width="1.5"/><path d="M3 17c1-3.5 4-5 7-5s6 1.5 7 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          </span>
+          <span>
+            <span class="rl-title">Register as a patient</span>
+            <span class="rl-sub">Book appointments with doctors</span>
+          </span>
+          <span class="arrow">→</span>
+        </a>
+        <a class="register-link" href="register-doctor.html">
+          <span class="rl-icon">
+            <svg viewBox="0 0 20 20" fill="none"><path d="M6 2v6a4 4 0 0 0 8 0V2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M17 8v2a5 5 0 0 1-10 0V8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="16.5" cy="5.5" r="1.5" stroke="currentColor" stroke-width="1.3"/></svg>
+          </span>
+          <span>
+            <span class="rl-title">Register as a doctor</span>
+            <span class="rl-sub">Set your hours, take appointments</span>
+          </span>
+          <span class="arrow">→</span>
+        </a>
+      </div>
+    </div>
+  </main>
+
+<script>
+  // ---- Signature schedule-strip ----
+  (function buildStrip(){
+    const strip = document.getElementById('strip');
+    const now = new Date();
+    now.setSeconds(0,0);
+    const mins = now.getMinutes();
+    now.setMinutes(mins < 30 ? 30 : 60, 0, 0);
+    const fmt = (d) => d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+    let ticket = 108;
+    for(let i=0;i<5;i++){
+      const slotTime = new Date(now.getTime() + i*30*60000);
+      const row = document.createElement('div');
+      row.className = 'strip-row' + (i===0 ? ' active' : '');
+      row.style.animationDelay = (i*70) + 'ms';
+      row.innerHTML = `<span class="t">${fmt(slotTime)}</span><span class="label">${i===0 ? 'Next available' : 'Open slot'}</span>` +
+        (i===0 ? '<span class="pulse-dot"></span>' : `<span class="no">№ ${ticket + i}</span>`);
+      strip.appendChild(row);
+    }
+  })();
+
+  // ---- Config ----
+  const API_BASE_URL = 'http://localhost:8080/api/doctor_appointment_system';
+
+  // ---- Decode a JWT payload (no verification — just reading claims already trusted from our own login response) ----
+  function decodeJwtPayload(token){
+    try {
+      const payload = token.split('.')[1];
+      const base64 = payload.replace(/-/g, '+').replace(/_/g, '/');
+      const json = decodeURIComponent(atob(base64).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
+      return JSON.parse(json);
+    } catch(_) { return null; }
+  }
+
+  // ---- Show success banner after a fresh registration ----
+  (function checkRegisteredFlag(){
+    const params = new URLSearchParams(window.location.search);
+    const role = params.get('registered');
+    if(role === 'patient' || role === 'doctor'){
+      const banner = document.getElementById('banner');
+      banner.textContent = `Account created — sign in below to continue as a ${role}.`;
+      banner.className = 'banner show info';
+    }
+  })();
+
+  // ---- Form handling ----
+  const form = document.getElementById('login-form');
+  const banner = document.getElementById('banner');
+  const submitBtn = document.getElementById('submit-btn');
+  const btnText = submitBtn.querySelector('.btn-text');
+
+  function showBanner(kind, message){
+    banner.textContent = message;
+    banner.className = 'banner show ' + kind;
+  }
+
+  function clearFieldErrors(){
+    document.getElementById('email-error').textContent = '';
+    document.getElementById('password-error').textContent = '';
+  }
+
+  function setLoading(isLoading, label){
+    submitBtn.disabled = isLoading;
+    submitBtn.classList.toggle('loading', isLoading);
+    btnText.textContent = label;
+  }
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    clearFieldErrors();
+    banner.className = 'banner';
+
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+
+    let valid = true;
+    if(!email){ document.getElementById('email-error').textContent = 'Email is required.'; valid = false; }
+    if(!password){ document.getElementById('password-error').textContent = 'Password is required.'; valid = false; }
+    if(!valid) return;
+
+    setLoading(true, 'Signing in…');
+
+    try {
+      const res = await fetch(`${API_BASE_URL}/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: email, password: password })
+      });
+
+      if(!res.ok){
+        const text = await res.text();
+        let message = 'Invalid email or password.';
+        try { const parsed = JSON.parse(text); if(parsed.message) message = parsed.message; } catch(_) {}
+        showBanner('error', message);
+        return;
+      }
+
+      const token = await res.text();
+      sessionStorage.setItem('das_token', token);
+      sessionStorage.setItem('das_email', email);
+      showBanner('info', 'Signed in — redirecting…');
+
+      const claims = decodeJwtPayload(token);
+      const authorities = (claims && claims.authorities) || [];
+      const isDoctor = authorities.some(a => (a.authority || a) === 'ROLE_DOCTOR');
+      window.location.href = isDoctor ? 'doctor-dashboard.html' : 'patient-dashboard.html';
+
+    } catch (err) {
+      showBanner('error', 'Could not reach the server. Is the backend running on localhost:8080, and is CORS enabled? See README Section 7.');
+    } finally {
+      setLoading(false, 'Sign in');
+    }
+  });
+</script>
+
+</body>
+</html>
