@@ -17,10 +17,10 @@ public class Slot {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
+    @Column(nullable = false,name = "start_time")
     private LocalTime start;
 
-    @Column(nullable = false)
+    @Column(nullable = false,name = "end_time")
     private LocalTime end;
 
     @Column(nullable = false)
