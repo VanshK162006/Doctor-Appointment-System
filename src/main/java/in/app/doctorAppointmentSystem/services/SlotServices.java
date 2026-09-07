@@ -27,7 +27,7 @@ public class SlotServices {
         LocalTime endTime = startTime.plusMinutes(30);
         Doctor d1 = doctorDao.findById(doctorId);
 
-        while (startTime.isBefore(availableTo)) {
+        while (startTime.isBefore(availableTo) && endTime.isBefore(availableTo)) {
             Slot s1 = Slot.builder()
                     .start(startTime)
                     .end(endTime)
