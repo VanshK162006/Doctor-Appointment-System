@@ -260,7 +260,7 @@
   </main>
 
 <script>
-  const API_BASE_URL = 'https://doctor-appointment-system-jsi4.onrender.com/api/doctor_appointment_system';
+  const API_BASE_URL = 'https://doctorappointmentsystem-gy57.onrender.com/api/doctor_appointment_system';
 
   const form = document.getElementById('register-form');
   const banner = document.getElementById('banner');
@@ -351,7 +351,7 @@
       window.location.href = 'index.html?registered=doctor';
 
     } catch (err) {
-      showBanner('error', 'Could not reach the server. Is the backend running on localhost:8080, and is CORS enabled? See README Section 7.');
+      showBanner('error', 'Could not reach the server. It may be waking up (free Render servers sleep when idle) — wait about 30–60 seconds and try again.');
     } finally {
       setLoading(false, 'Create account');
     }

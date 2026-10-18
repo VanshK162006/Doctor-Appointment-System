@@ -181,7 +181,7 @@
   </div>
 
 <script>
-  const API_BASE_URL = 'https://doctor-appointment-system-jsi4.onrender.com/api/doctor_appointment_system';
+  const API_BASE_URL = 'https://doctorappointmentsystem-gy57.onrender.com/api/doctor_appointment_system';
 
   const token = sessionStorage.getItem('das_token');
   const email = sessionStorage.getItem('das_email');
@@ -218,7 +218,7 @@
     if(!res.ok){
       let message = (data && data.message) || 'Request failed.';
       if(res.status === 403 || res.status === 500){
-        message += ' — this looks like the role-check bug described in README Section 7 (hasRole vs hasAuthority). Fix that in SecurityConfiguration/controllers, then retry.';
+        if(res.status === 403) message += ' — you do not have permission for this action. Try signing out and signing in again.';
       }
       throw new Error(message);
     }
